@@ -1,0 +1,40 @@
+{
+  "servers": [
+    {
+      "id": "sv1",
+      "name": "#1 - LosPibesDelMix [AUTOMIX]",
+      "ip": "45.235.98.220:27262",
+      "ubicacion": "Argentina",
+      "slots": "14",
+      "descripcion": "Servidor Automix",
+      "tipo": ["5v5", "Mix"]
+    },
+    {
+      "id": "sv2",
+      "name": "#2 - LosPibesDelMix [2vs2]",
+      "ip": "45.235.98.30:27246",
+      "ubicacion": "Argentina",
+      "slots": "14",
+      "descripcion": "Servidor Competitivo",
+      "tipo": ["2v2", "Mix"]
+    },
+    {
+      "id": "sv3",
+      "name": "#3 - LosPibesDelMix [3vs3]",
+      "ip": "45.235.98.30:27320",
+      "ubicacion": "Argentina",
+      "slots": "12",
+      "descripcion": "Servidor Competitivo",
+      "tipo": ["3v3", "Mix"]
+    },
+    {
+      "id": "sv4",
+      "name": "#4 - LosPibesDelMix [PCW/MIX]",
+      "ip": "45.235.98.30:27555",
+      "ubicacion": "Argentina",
+      "slots": "14",
+      "descripcion": "Servidor Competitivo",
+      "tipo": ["5v5", "Mix", "PCW"]
+    }
+  ]
+}
