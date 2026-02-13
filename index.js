@@ -64,6 +64,7 @@ const startTime = Date.now();
 // 📁 CARGAR COMANDOS
 // ═══════════════════════════════════════════════════════════
 const commandsPath = path.join(__dirname, 'commands');
+const commandsData = []; // Array para registrar en Discord
 
 try {
     const commandFolders = fs.readdirSync(commandsPath);
@@ -86,6 +87,7 @@ try {
                 
                 if ('data' in command && 'execute' in command) {
                     client.commands.set(command.data.name, command);
+                    commandsData.push(command.data.toJSON()); // Agregar para deploy
                     commandCount++;
                     console.log(`  ✅ ${command.data.name} (${folder})`);
                 } else {
@@ -138,50 +140,119 @@ try {
 }
 
 // ═══════════════════════════════════════════════════════════
-// 🔄 AUTO-REGISTRO DE COMANDOS SLASH
+// 🔄 FUNCIÓN PARA REGISTRAR COMANDOS AUTOMÁTICAMENTE
 // ═══════════════════════════════════════════════════════════
 
-async function registerCommands() {
-    const rest = new REST().setToken(process.env.TOKEN);
-    const commands = [];
-
-    for (const [name, command] of client.commands) {
-        commands.push(command.data.toJSON());
+async function deployCommands() {
+    if (!process.env.TOKEN || !process.env.CLIENT_ID) {
+        console.log('⚠️  No se puede registrar comandos: falta TOKEN o CLIENT_ID en .env\n');
+        return;
     }
 
+    const rest = new REST().setToken(process.env.TOKEN);
+
     try {
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🔄 Registrando comandos slash...');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔄 Registrando comandos slash en Discord...');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
         let data;
+        let deployMode;
         
         if (process.env.GUILD_ID) {
-            // Registro en servidor específico (inmediato)
-            console.log('📍 Modo: Servidor específico (cambios inmediatos)\n');
+            // Registro en servidor específico (INMEDIATO - recomendado para desarrollo)
+            deployMode = '📍 Servidor específico (cambios inmediatos)';
             data = await rest.put(
                 Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-                { body: commands }
+                { body: commandsData }
             );
         } else {
-            // Registro global (tarda hasta 1 hora)
-            console.log('🌍 Modo: Global (puede tardar hasta 1 hora)\n');
+            // Registro global (TARDA 1 HORA - solo para producción)
+            deployMode = '🌍 Global (puede tardar hasta 1 hora)';
             data = await rest.put(
                 Routes.applicationCommands(process.env.CLIENT_ID),
-                { body: commands }
+                { body: commandsData }
             );
         }
 
+        console.log(`✅ Modo de deploy: ${deployMode}`);
         console.log(`✅ ${data.length} comandos registrados exitosamente!\n`);
         
-        // Mostrar comandos registrados
-        const registeredCommands = data.map(cmd => cmd.name).sort();
-        console.log('📋 Comandos registrados:');
-        registeredCommands.forEach(cmd => console.log(`   ✓ /${cmd}`));
-        console.log('');
+        // Mostrar lista de comandos registrados
+        console.log('📋 Comandos registrados en Discord:');
+        
+        // Agrupar por categoría
+        const categorias = {};
+        const commandFolders = fs.readdirSync(commandsPath);
+        
+        for (const cmd of data) {
+            let categoria = 'otros';
+            
+            // Buscar en qué carpeta está
+            for (const folder of commandFolders) {
+                const folderPath = path.join(commandsPath, folder);
+                if (!fs.statSync(folderPath).isDirectory()) continue;
+                
+                const files = fs.readdirSync(folderPath);
+                if (files.includes(`${cmd.name}.js`)) {
+                    categoria = folder;
+                    break;
+                }
+            }
+            
+            if (!categorias[categoria]) categorias[categoria] = [];
+            categorias[categoria].push(cmd.name);
+        }
+        
+        // Emojis por categoría
+        const categoryEmojis = {
+            'entretenimiento': '🎲',
+            'diversion': '🎲',
+            'moderacion': '🛡️',
+            'utilidad': '⚙️',
+            'economia': '💰',
+            'musica': '🎵',
+            'admin': '👑',
+            'info': 'ℹ️',
+            'configuracion': '⚙️',
+            'juegos': '🎮',
+            'nivel': '📊',
+            'tickets': '🎫',
+            'herramientas': '🔧'
+        };
+        
+        // Mostrar por categoría
+        Object.keys(categorias).sort().forEach(cat => {
+            const emoji = categoryEmojis[cat.toLowerCase()] || '📁';
+            const categoryName = cat.charAt(0).toUpperCase() + cat.slice(1);
+            console.log(`\n${emoji} ${categoryName}:`);
+            categorias[cat].sort().forEach(cmd => console.log(`   ✓ /${cmd}`));
+        });
+        
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('✅ Comandos listos para usar en Discord!');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         
     } catch (error) {
-        console.error('❌ Error al registrar comandos:', error);
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ ERROR AL REGISTRAR COMANDOS');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        
+        if (error.code === 50001) {
+            console.error('💡 Error: El bot no tiene permisos suficientes.');
+            console.error('   Verifica que el TOKEN sea correcto.\n');
+        } else if (error.code === 10004) {
+            console.error('💡 Error: GUILD_ID inválido.');
+            console.error('   Verifica el ID del servidor en .env\n');
+        } else if (error.status === 401) {
+            console.error('💡 Error: TOKEN inválido.');
+            console.error('   Verifica tu archivo .env\n');
+        } else {
+            console.error(error);
+        }
+        
+        console.error('⚠️  El bot continuará sin registrar comandos.');
+        console.error('   Puedes ejecutar "node deploy-commands.js" manualmente.\n');
     }
 }
 
@@ -233,7 +304,7 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // ═══════════════════════════════════════════════════════════
-// 🚀 LOGIN Y AUTO-REGISTRO
+// 🚀 LOGIN Y AUTO-DEPLOY
 // ═══════════════════════════════════════════════════════════
 
 client.login(process.env.TOKEN)
@@ -241,12 +312,8 @@ client.login(process.env.TOKEN)
         const loadTime = Date.now() - startTime;
         console.log(`✅ Bot cargado exitosamente en ${loadTime}ms\n`);
         
-        // Auto-registrar comandos si está habilitado
-        if (process.env.AUTO_DEPLOY === 'true') {
-            await registerCommands();
-        } else {
-            console.log('💡 AUTO_DEPLOY desactivado. Ejecuta "node deploy-commands.js" para registrar comandos.\n');
-        }
+        // ⚡ REGISTRAR COMANDOS AUTOMÁTICAMENTE
+        await deployCommands();
     })
     .catch((error) => {
         console.error('❌ Error al iniciar sesión:', error);
