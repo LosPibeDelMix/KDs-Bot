@@ -3,6 +3,30 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
+const express = require('express');
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('Bot activo');
+});
+
+app.get('/status', (req, res) => {
+    res.json({
+        online: client.isReady(),
+        ping: client.ws.ping || 0,
+        servers: client.guilds.cache.size,
+        users: client.users.cache.size,
+        uptime: client.uptime || 0
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`🌐 Servidor web escuchando en puerto ${PORT}`);
+});
+
+
 // ⚡ CLIENTE OPTIMIZADO
 const client = new Client({
     intents: [
