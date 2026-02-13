@@ -25,16 +25,14 @@ module.exports = {
     async execute(interaction) {
         const comandoEspecifico = interaction.options.getString('comando');
 
-        // ⚡ RESPONDER INMEDIATAMENTE para evitar timeout
-        await interaction.deferReply();
-
         // Si se especificó un comando, mostrar info detallada
         if (comandoEspecifico) {
             const command = interaction.client.commands.get(comandoEspecifico);
             
             if (!command) {
-                return interaction.editReply({ 
-                    content: `❌ No se encontró el comando \`${comandoEspecifico}\`.`
+                return interaction.reply({ 
+                    content: `❌ No se encontró el comando \`${comandoEspecifico}\`.`,
+                    ephemeral: true
                 });
             }
 
@@ -61,7 +59,7 @@ module.exports = {
                 });
             }
 
-            return interaction.editReply({ embeds: [embed] });
+            return interaction.reply({ embeds: [embed] });
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -73,9 +71,6 @@ module.exports = {
 
         // Organizar comandos por categoría directamente desde la collection
         for (const [name, command] of commands) {
-            // Detectar categoría desde la ruta del comando
-            const commandPath = command.data.name;
-            
             // Buscar en qué carpeta está el comando
             const fs = require('fs');
             const path = require('path');
@@ -199,7 +194,7 @@ module.exports = {
                     .setEmoji('🔄')
             );
 
-        await interaction.editReply({ 
+        await interaction.reply({ 
             embeds: [mainEmbed], 
             components: [row, buttonRow] 
         });

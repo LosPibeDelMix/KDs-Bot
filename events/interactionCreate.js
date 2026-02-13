@@ -95,6 +95,11 @@ module.exports = {
 
                     await interaction.update({ embeds: [mainEmbed] });
                 } catch (error) {
+                    // Ignorar errores de timeout
+                    if (error.code === 10062) {
+                        console.log('⚠️  Interacción expirada (timeout) - ignorando');
+                        return;
+                    }
                     console.error('❌ Error al actualizar help:', error);
                 }
             }
@@ -205,6 +210,11 @@ module.exports = {
 
                     await interaction.update({ embeds: [embed] });
                 } catch (error) {
+                    // Ignorar errores de timeout
+                    if (error.code === 10062) {
+                        console.log('⚠️  Interacción expirada (timeout) - ignorando');
+                        return;
+                    }
                     console.error('❌ Error en select menu:', error);
                 }
             }
@@ -261,6 +271,12 @@ module.exports = {
             
             console.log(`📝 ${interaction.user.tag} usó /${command.data.name}`);
         } catch (error) {
+            // Ignorar errores de timeout
+            if (error.code === 10062) {
+                console.log(`⚠️  Timeout en /${command.data.name} - ignorando`);
+                return;
+            }
+
             console.error(`❌ Error ejecutando ${interaction.commandName}:`, error);
             
             const errorMessage = {
