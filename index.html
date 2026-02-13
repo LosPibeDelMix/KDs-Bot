@@ -1,126 +1,140 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KDs Bot Status</title>
+    <meta charset="UTF-8">
+    <title>KDs Bot Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+        body {
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-.card {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(12px);
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-    width: 320px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.3);
-    animation: fadeIn 1s ease;
-}
+        .card {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 16px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.4);
+        }
 
-h1 {
-    margin-bottom: 10px;
-    font-weight: 700;
-}
+        h1 {
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
 
-.status {
-    font-size: 26px;
-    font-weight: bold;
-    margin: 20px 0;
-}
+        .status {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
 
-.online {
-    color: #4caf50;
-}
+        .online {
+            background: #065f46;
+            color: #10b981;
+        }
 
-.offline {
-    color: #ff5252;
-}
+        .offline {
+            background: #7f1d1d;
+            color: #ef4444;
+        }
 
-.info {
-    opacity: 0.8;
-    margin-top: 10px;
-}
+        .info {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
 
-footer {
-    margin-top: 30px;
-    font-size: 13px;
-    opacity: 0.5;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>
+        .refresh {
+            margin-top: 20px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="card">
-    <h1>🤖 KDs Bot</h1>
+    <h1>🤖 KDs Bot Dashboard</h1>
 
-    <div id="status" class="status">Verificando...</div>
+    <div id="status" class="status">
+        Verificando...
+    </div>
 
-    <div class="info" id="responseTime"></div>
-    <div class="info" id="lastCheck"></div>
+    <div class="info" id="ping"></div>
+    <div class="info" id="servers"></div>
+    <div class="info" id="users"></div>
+    <div class="info" id="uptime"></div>
 
-    <footer>
-        Dashboard Status
-    </footer>
+    <div class="refresh">
+        Actualiza cada 15 segundos
+    </div>
 </div>
 
 <script>
+    const API_URL = "u3311325-397b975848670a6dc27d5536";
 
-const API_KEY = "u3311325-397b975848670a6dc27d5536";
-const MONITOR_ID = "802342990";
+    function formatUptime(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
 
-async function checkBot() {
+        return `${hours}h ${minutes}m ${seconds}s`;
+    }
 
-    try {
-        const res = await fetch("https://api.uptimerobot.com/v2/getMonitors", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: `api_key=${API_KEY}&monitors=${MONITOR_ID}&format=json`
-        });
+    async function checkBot() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
 
-        const data = await res.json();
+            const statusDiv = document.getElementById("status");
 
-        const monitor = data.monitors[0];
-        const statusDiv = document.getElementById("status");
+            if (data.online) {
+                statusDiv.textContent = "ONLINE 🟢";
+                statusDiv.className = "status online";
+            } else {
+                statusDiv.textContent = "OFFLINE 🔴";
+                statusDiv.className = "status offline";
+            }
 
-        if (monitor.status === 2) {
-            statusDiv.textContent = "ONLINE 🟢";
-            statusDiv.className = "status online";
-        } else {
+            document.getElementById("ping").textContent =
+                "Ping: " + data.ping + " ms";
+
+            document.getElementById("servers").textContent =
+                "Servidores: " + data.servers;
+
+            document.getElementById("users").textContent =
+                "Usuarios cacheados: " + data.users;
+
+            document.getElementById("uptime").textContent =
+                "Uptime: " + formatUptime(data.uptime);
+
+        } catch (error) {
+            const statusDiv = document.getElementById("status");
             statusDiv.textContent = "OFFLINE 🔴";
             statusDiv.className = "status offline";
         }
-
-        document.getElementById("responseTime").textContent =
-            "Response Time: " + monitor.response_times?.[0]?.value + " ms" || "";
-
-        document.getElementById("lastCheck").textContent =
-            "Último chequeo: " + new Date().toLocaleTimeString();
-
-    } catch (error) {
-        document.getElementById("status").textContent = "Error conectando API";
     }
-}
 
-checkBot();
-setInt
+    checkBot();
+    setInterval(checkBot, 15000);
+</script>
+
+</body>
+</html>
