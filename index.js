@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Partials, REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -138,6 +138,54 @@ try {
 }
 
 // ═══════════════════════════════════════════════════════════
+// 🔄 AUTO-REGISTRO DE COMANDOS SLASH
+// ═══════════════════════════════════════════════════════════
+
+async function registerCommands() {
+    const rest = new REST().setToken(process.env.TOKEN);
+    const commands = [];
+
+    for (const [name, command] of client.commands) {
+        commands.push(command.data.toJSON());
+    }
+
+    try {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔄 Registrando comandos slash...');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+        let data;
+        
+        if (process.env.GUILD_ID) {
+            // Registro en servidor específico (inmediato)
+            console.log('📍 Modo: Servidor específico (cambios inmediatos)\n');
+            data = await rest.put(
+                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+                { body: commands }
+            );
+        } else {
+            // Registro global (tarda hasta 1 hora)
+            console.log('🌍 Modo: Global (puede tardar hasta 1 hora)\n');
+            data = await rest.put(
+                Routes.applicationCommands(process.env.CLIENT_ID),
+                { body: commands }
+            );
+        }
+
+        console.log(`✅ ${data.length} comandos registrados exitosamente!\n`);
+        
+        // Mostrar comandos registrados
+        const registeredCommands = data.map(cmd => cmd.name).sort();
+        console.log('📋 Comandos registrados:');
+        registeredCommands.forEach(cmd => console.log(`   ✓ /${cmd}`));
+        console.log('');
+        
+    } catch (error) {
+        console.error('❌ Error al registrar comandos:', error);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
 // 🛡️ MANEJO DE ERRORES
 // ═══════════════════════════════════════════════════════════
 
@@ -185,13 +233,20 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // ═══════════════════════════════════════════════════════════
-// 🚀 LOGIN
+// 🚀 LOGIN Y AUTO-REGISTRO
 // ═══════════════════════════════════════════════════════════
 
 client.login(process.env.TOKEN)
-    .then(() => {
+    .then(async () => {
         const loadTime = Date.now() - startTime;
         console.log(`✅ Bot cargado exitosamente en ${loadTime}ms\n`);
+        
+        // Auto-registrar comandos si está habilitado
+        if (process.env.AUTO_DEPLOY === 'true') {
+            await registerCommands();
+        } else {
+            console.log('💡 AUTO_DEPLOY desactivado. Ejecuta "node deploy-commands.js" para registrar comandos.\n');
+        }
     })
     .catch((error) => {
         console.error('❌ Error al iniciar sesión:', error);
