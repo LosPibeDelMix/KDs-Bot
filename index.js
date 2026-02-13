@@ -69,6 +69,8 @@ try {
     const commandFolders = fs.readdirSync(commandsPath);
     let commandCount = 0;
 
+    console.log('📂 Cargando comandos...\n');
+
     for (const folder of commandFolders) {
         const folderPath = path.join(commandsPath, folder);
         
@@ -108,6 +110,8 @@ const eventsPath = path.join(__dirname, 'events');
 try {
     const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
     let eventCount = 0;
+
+    console.log('🎯 Cargando eventos...\n');
 
     for (const file of eventFiles) {
         const filePath = path.join(eventsPath, file);

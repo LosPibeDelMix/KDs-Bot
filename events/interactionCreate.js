@@ -30,6 +30,23 @@ module.exports = {
                     const commandsPath = path.join(__dirname, '../commands');
                     const categorias = {};
 
+                    const categoryEmojis = {
+                        'entretenimiento': '🎲',
+                        'diversion': '🎲',
+                        'moderacion': '🛡️',
+                        'utilidad': '⚙️',
+                        'economia': '💰',
+                        'musica': '🎵',
+                        'admin': '👑',
+                        'info': 'ℹ️',
+                        'configuracion': '⚙️',
+                        'juegos': '🎮',
+                        'nivel': '📊',
+                        'tickets': '🎫',
+                        'herramientas': '🔧',
+                        'sin_categoria': '📁'
+                    };
+
                     const folders = fs.readdirSync(commandsPath);
                     for (const folder of folders) {
                         const folderPath = path.join(commandsPath, folder);
@@ -47,21 +64,6 @@ module.exports = {
                             }).filter(cmd => cmd !== null);
                         }
                     }
-
-                    const categoryEmojis = {
-                        'entretenimiento': '🎲',
-                        'diversion': '🎲',
-                        'moderacion': '🛡️',
-                        'utilidad': '⚙️',
-                        'economia': '💰',
-                        'musica': '🎵',
-                        'admin': '👑',
-                        'info': 'ℹ️',
-                        'configuracion': '⚙️',
-                        'juegos': '🎮',
-                        'nivel': '📊',
-                        'tickets': '🎫'
-                    };
 
                     const totalCommands = commands.size;
                     const mainEmbed = new EmbedBuilder()
@@ -120,7 +122,9 @@ module.exports = {
                         'configuracion': '⚙️',
                         'juegos': '🎮',
                         'nivel': '📊',
-                        'tickets': '🎫'
+                        'tickets': '🎫',
+                        'herramientas': '🔧',
+                        'sin_categoria': '📁'
                     };
 
                     if (categoria === 'all') {

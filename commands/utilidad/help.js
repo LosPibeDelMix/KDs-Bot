@@ -120,6 +120,7 @@ module.exports = {
             'juegos': '🎮',
             'nivel': '📊',
             'tickets': '🎫',
+            'herramientas': '🔧',
             'sin_categoria': '📁'
         };
 
