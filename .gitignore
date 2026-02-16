@@ -1,3 +1,28 @@
+# Dependencias
 node_modules/
-.env
 package-lock.json
+
+# Archivos de entorno
+.env
+
+# Datos del bot
+data/*.json
+
+# Logs
+*.log
+logs/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporales
+*.tmp
+temp/
